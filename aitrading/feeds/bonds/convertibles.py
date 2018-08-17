@@ -37,10 +37,10 @@ missedInTushare = jdf[~jdf.bond_id.isin(tdf.bond_id)][['bond_id','bond_nm']]
 # get end of day history pricing data
 allConvertibles = pd.merge(tdf[['bond_id']], jdf[['bond_id']],how='outer',on='bond_id')
 for index, row in allConvertibles.iterrows():
-    histDf = ts.get_hist_data(str(row['bond_id']))
-    if histDf is None:
+    histDf = ts.get_k_data(str(row['bond_id']))
+    if histDf is None or histDf.empty:
         print("no end of day history data for "+ str(row['bond_id']))
     else:
         histDf['bond_id'] = row['bond_id']
-        histDf.set_index(['bond_id'],append=True,inplace=True)
-        histDf.to_sql(config['convertibles']['tblConvertibleEODHistory'],engine,if_exists='append',chunksize=10)
+        histDf.set_index(['bond_id','date'],inplace=True)
+        histDf.to_sql(config['convertibles']['tblConvertibleEODHistory'],engine,if_exists='append',chunksize=10,index_label=['bond_id','date'])
