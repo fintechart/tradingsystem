@@ -1,0 +1,8 @@
+{
+  "convertibles":{
+    "dbConnString":"sqlite:///tradingsystem.db",
+    "tblConvertibleReference":"bond_convertibles",
+    "tblConvertibleEODHistory":"bond_convertibles_eodhist",
+    "jisiluUrlBase":"https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t="
+  }
+}
