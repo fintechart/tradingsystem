@@ -28,11 +28,10 @@ cbonds=[]
 for r in data['rows']:
     cbonds.append(r['cell'])
 jdf = pd.DataFrame.from_dict(cbonds)        # jisilu df
-#jdf.bond_id = jdf.bond_id.astype(np.int64) 
 jdf.bond_id = jdf.bond_id.astype(str) 
 
 # compare tushare with jisilu
-missedInTushare = jdf[~jdf.bond_id.isin(tdf.bond_id)][['bond_id','bond_nm']]
+#missedInTushare = jdf[~jdf.bond_id.isin(tdf.bond_id)][['bond_id','bond_nm']]
 
 # get end of day history pricing data
 allConvertibles = pd.merge(tdf[['bond_id']], jdf[['bond_id']],how='outer',on='bond_id')
