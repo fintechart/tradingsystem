@@ -6,7 +6,7 @@ import jwt
 import bcrypt
 from marshmallow import Schema, fields
 from sqlalchemy import Column, String, Boolean
-from .entity import Entity, Base, Session
+from .entity import Entity, Base, query_session
 
 class User(Entity, Base):
   __tablename__ = "users"
@@ -34,7 +34,7 @@ class User(Entity, Base):
     """
     try:
       payload = {
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=500),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=86400),
         'iat': datetime.datetime.utcnow(),
         'sub': user_id
         }
@@ -83,9 +83,8 @@ class BlacklistToken(Entity,Base):
   @staticmethod
   def check_blacklist(auth_token):
     # check whether auth token has been blacklisted
-    session=Session()
-    res = session.query(BlacklistToken).filter_by(token=str(auth_token)).first()
-    session.close()
+    with query_session() as s:
+      res = s.query(BlacklistToken).filter_by(token=str(auth_token)).first()
     if res:
       return True
     else:

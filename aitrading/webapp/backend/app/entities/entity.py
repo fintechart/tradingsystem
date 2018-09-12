@@ -4,16 +4,25 @@ import os
 from datetime import datetime
 from contextlib import contextmanager
 from sqlalchemy import create_engine, Column, String, Integer, DateTime
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
 engine = create_engine(os.getenv('SQLALCHEMY_DATABASE_URI'))
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
 @contextmanager
-def session_scope():
-  """Provide a transactional scope around a series of operations."""
+def query_session():
+  session = Session()
+  try:
+    yield session
+  except:
+    raise
+  finally:
+    session.close()
+
+@contextmanager
+def modify_session():
   session = Session()
   try:
     yield session
@@ -34,3 +43,4 @@ class Entity():
         self.created_at = datetime.now()
         self.updated_at = datetime.now()
         self.last_updated_by = created_by
+

@@ -2,7 +2,7 @@
 
 from flask import request,jsonify
 from app import app
-from ..entities.entity import Session
+from ..entities.entity import query_session, modify_session
 from ..entities.users import User,UserSchema,BlacklistToken 
 
 @app.route('/auth/register', methods=['POST'])
@@ -11,25 +11,23 @@ def register():
   pUser = UserSchema(only=('email', 'password')).load(request.get_json())
   u = User(**pUser.data) 
   # check if user already exists
-  session = Session()
-  user = session.query(User).filter_by(email=u.email).first()
-  session.close()
+  with query_session() as s:
+    user = s.query(User).filter_by(email=u.email).first()
   if not user:
     try:
       # insert the user
-      session = Session()
-      session.add(u)
-      session.commit()
-      # generate the auth token
-      auth_token = User.encode_auth_token(u.id)
+      with modify_session() as s:
+        s.add(u)
+        # generate the auth token
+        auth_token = User.encode_auth_token(u.id)
       responseObject = {
         'status': 'success',
         'message': 'Successfully registered.',
         'auth_token': auth_token.decode()
       }
-      session.close()
       return jsonify(responseObject), 201
     except Exception as e:
+      app.logger.error(e)
       responseObject = {
         'status': 'fail',
         'message': 'Some error occurred. Please try again.'
@@ -50,9 +48,8 @@ def login():
   pw = pData.get('password')
   try:
     # fetch the user data
-    session = Session()
-    user = session.query(User).filter_by(email=em).first()
-    session.close()
+    with query_session() as s:
+      user = s.query(User).filter_by(email=em).first()
     if user and User.check_password_hash(user.password, pw):
       auth_token = User.encode_auth_token(user.id)
       if auth_token:
@@ -69,6 +66,7 @@ def login():
       }
       return jsonify(responseObject), 404
   except Exception as e:
+    print(e)
     responseObject = {
       'status': 'fail',
       'message': 'Try again'
@@ -94,8 +92,8 @@ def status():
   if auth_token:
     resp = User.decode_auth_token(auth_token)
     if not isinstance(resp, str):
-      session = Session()
-      user = session.query(User).filter_by(id=resp).first()
+      with query_session() as s:
+        user = s.query(User).filter_by(id=resp).first()
       responseObject = {
         'status': 'success',
         'data': {
@@ -134,10 +132,8 @@ def logout():
       blacklist_token = BlacklistToken(token=auth_token)
       try:
         # insert the token
-        session = Session()
-        session.add(blacklist_token)
-        session.commit()
-        session.close()
+        with modify_session() as s:
+          s.add(blacklist_token)
         responseObject = {
           'status': 'success',
           'message': 'Successfully logged out.'
