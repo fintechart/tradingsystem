@@ -7,9 +7,9 @@ maria_local_base = 'mysql+pymysql://root:myr00t@localhost:3306/tradingsystem'
 
 class BaseConfig:
     """Base configuration."""
-    SECRET_KEY = os.getenv('SECRET_KEY', 'my_precious')
+    SECRET_KEY = os.getenv('SECRET_KEY', 'supersecret')
     DEBUG = False
-    BCRYPT_LOG_ROUNDS = 13
+    BCRYPT_LOG_ROUNDS = 7 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
@@ -32,6 +32,6 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     """Production configuration."""
-    SECRET_KEY = 'my_precious'
+    SECRET_KEY = 'supersecret'
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = 'postgresql:///example'
+    SQLALCHEMY_DATABASE_URI = 'mariadb:///proddb'
